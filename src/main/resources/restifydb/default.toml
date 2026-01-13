@@ -1,0 +1,243 @@
+[access]
+restrict = true  # Enable RLS restrictions globally
+# =============================
+# Access Policies for ap_tenants
+# =============================
+# ---------- SELECT ----------
+[[access.tables]]
+name = "ap_tenants"
+permissions = ["select"]
+rls_policy = """
+    ((tenant_id = #{#security.principal.tenantId} AND #{#security.hasAnyRole('ROLE_account_user', 'ROLE_account_manager', 'ROLE_tenant_admin')}) OR
+    (#{#security.hasAnyRole('ROLE_super_admin','ROLE_agent_bot')}))
+"""
+# ---------- UPDATE ----------
+[[access.tables]]
+name = "ap_tenants"
+permissions = ["update"]
+access_policy = "#{#security.hasAnyRole('ROLE_tenant_admin', 'ROLE_super_admin', 'ROLE_agent_bot')}"
+rls_policy = """
+    ((#{#security.hasRole('ROLE_tenant_admin')} AND tenant_id = #{#security.principal.tenantId}) OR
+     (#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}))
+          """
+# ---------- INSERT (Only Super Admin) ----------
+[[access.tables]]
+name = "ap_tenants"
+permissions = ["insert"]
+access_policy = "#{#security.hasAnyRole('ROLE_super_admin','ROLE_agent_bot')}"
+rls_policy = "#{#security.hasAnyRole('ROLE_super_admin','ROLE_agent_bot')}"
+# ---------- delete (Only Bot Admin) ----------
+[[access.tables]]
+name = "ap_tenants"
+permissions = ["delete"]
+access_policy = "#{#security.hasRole('ROLE_agent_bot')}"
+rls_policy = "#{#security.hasRole('ROLE_agent_bot')}"
+# =============================
+# ap_documents
+# =============================
+# ---------- SELECT ----------
+[[access.tables]]
+name = "ap_documents"
+permissions = ["select"]
+rls_policy = """
+    ((tenant_id = #{#security.principal.tenantId} AND user_id = #{#security.principal.userId} AND #{#security.hasAnyRole('ROLE_account_user')}) OR
+    (tenant_id = #{#security.principal.tenantId} AND #{#security.hasAnyRole('ROLE_account_manager')}) OR
+    (tenant_id = #{#security.principal.tenantId} AND #{#security.hasAnyRole('ROLE_tenant_admin')}) OR
+    (#{#security.hasAnyRole('ROLE_super_admin','ROLE_agent_bot')}))
+"""
+# ---------- INSERT ----------
+[[access.tables]]
+name = "ap_documents"
+permissions = ["insert"]
+access_policy = "#{#security.hasAnyRole('ROLE_account_user','ROLE_account_manager','ROLE_agent_bot')}"
+rls_policy = """
+     ((tenant_id = #{#security.principal.tenantId}) OR
+     (#{#security.hasAnyRole('ROLE_agent_bot')}))
+     """
+# ---------- DELETE,UPDATE ----------
+[[access.tables]]
+name = "ap_documents"
+permissions = ["update","delete"]
+access_policy = "#{#security.hasAnyRole('ROLE_agent_bot')}"
+rls_policy = """
+     (#{#security.hasAnyRole('ROLE_agent_bot')})
+     """
+# =============================
+# ap_invoices
+# =============================
+# ---------- SELECT ----------
+[[access.tables]]
+name = "ap_invoices"
+permissions = ["select"]
+rls_policy = """
+    ((tenant_id = #{#security.principal.tenantId} AND user_id = #{#security.principal.userId} AND #{#security.hasAnyRole('ROLE_account_user')}) OR
+    (tenant_id = #{#security.principal.tenantId} AND #{#security.hasAnyRole('ROLE_account_manager','ROLE_tenant_admin')}) OR
+    (#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}))
+"""
+# ---------- UPDATE ----------
+[[access.tables]]
+name = "ap_invoices"
+permissions = ["update"]
+access_policy = "#{#security.hasAnyRole('ROLE_account_user', 'ROLE_account_manager', 'ROLE_agent_bot')}"
+rls_policy = """
+    ((tenant_id = #{#security.principal.tenantId} AND user_id = #{#security.principal.userId} AND #{#security.hasAnyRole('ROLE_account_user')}) OR
+    (tenant_id = #{#security.principal.tenantId} AND #{#security.hasAnyRole('ROLE_account_manager')}) OR
+    (#{#security.hasRole('ROLE_agent_bot')}))
+"""
+# ---------- INSERT,DELETE ----------
+[[access.tables]]
+name = "ap_invoices"
+permissions = ["delete","insert"]
+access_policy = "#{#security.hasRole('ROLE_agent_bot')}"
+rls_policy = """
+     (#{#security.hasRole('ROLE_agent_bot')})
+     """
+# =============================
+# ap_field_config
+# =============================
+# ---------- SELECT ----------
+[[access.tables]]
+name = "ap_field_config"
+permissions = ["select"]
+rls_policy = """
+    ((tenant_id = #{#security.principal.tenantId} AND #{#security.hasAnyRole('ROLE_account_user','ROLE_account_manager','ROLE_tenant_admin')}) OR
+    (#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}))
+"""
+# ---------- UPDATE / INSERT / DELETE ----------
+[[access.tables]]
+name = "ap_field_config"
+permissions = ["update", "insert","delete"]
+access_policy = "#{#security.hasAnyRole('ROLE_tenant_admin','ROLE_super_admin','ROLE_agent_bot')}"
+rls_policy = """
+    ((#{#security.hasAnyRole('ROLE_tenant_admin')} AND tenant_id = #{#security.principal.tenantId}) OR
+     (#{#security.hasAnyRole('ROLE_super_admin','ROLE_agent_bot')}))
+"""
+# =============================
+# ap_generic_fields
+# =============================
+# ---------- SELECT ----------
+# there is no tenant_id in table, so given direct GET to all and crud for SuperAdmin only
+[[access.tables]]
+name = "ap_generic_fields"
+permissions = ["select"]
+rls_policy = """
+    #{#security.hasAnyRole('ROLE_account_user','ROLE_account_manager','ROLE_tenant_admin','ROLE_super_admin','ROLE_agent_bot')}
+"""
+# ---------- UPDATE / INSERT / DELETE ----------
+[[access.tables]]
+name = "ap_generic_fields"
+permissions = ["update", "insert", "delete"]
+access_policy = "#{#security.hasAnyRole('ROLE_super_admin','ROLE_agent_bot')}"
+rls_policy = "#{#security.hasAnyRole('ROLE_super_admin','ROLE_agent_bot')}"
+# =============================
+# ap_masters
+# =============================
+# ---------- SELECT ----------
+[[access.tables]]
+name = "ap_masters"
+permissions = ["select"]
+rls_policy = """
+    ((#{#security.hasRole('ROLE_account_user')} AND created_by = #{#security.principal.userId}) OR
+    (#{#security.hasAnyRole('ROLE_account_manager','ROLE_tenant_admin')} AND tenant_id = #{#security.principal.tenantId}) OR
+     (#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}))
+"""
+# ---------- INSERT ----------
+[[access.tables]]
+name = "ap_masters"
+permissions = ["insert","update"]
+access_policy = "#{#security.hasAnyRole('ROLE_tenant_admin','ROLE_super_admin', 'ROLE_agent_bot')}"
+rls_policy = """
+    ((#{#security.hasAnyRole('ROLE_tenant_admin')} AND tenant_id = #{#security.principal.tenantId}) OR
+    (#{#security.hasAnyRole('ROLE_super_admin','ROLE_agent_bot')}))
+"""
+# ---------- DELETE ----------
+[[access.tables]]
+name = "ap_masters"
+permissions = ["delete"]
+access_policy = "#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}"
+rls_policy = "#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}"
+# =============================
+# ap_parameters
+# =============================
+# ---------- SELECT ----------
+[[access.tables]]
+name = "ap_parameters"
+permissions = ["select"]
+rls_policy = """
+    ((#{#security.hasRole('ROLE_account_user')} AND created_by = #{#security.principal.userId}) OR
+    (#{#security.hasAnyRole('ROLE_account_manager','ROLE_tenant_admin')} AND tenant_id = #{#security.principal.tenantId}) OR
+    (#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}))
+"""
+# ---------- INSERT/ UPDATE ----------
+[[access.tables]]
+name = "ap_parameters"
+permissions = ["insert", "update"]
+access_policy = "#{#security.hasAnyRole('ROLE_tenant_admin','ROLE_super_admin', 'ROLE_agent_bot')}"
+rls_policy = """
+    ((#{#security.hasAnyRole('ROLE_tenant_admin')} AND tenant_id = #{#security.principal.tenantId}) OR
+    (#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}))
+"""
+# ---------- DELETE ----------
+[[access.tables]]
+name = "ap_parameters"
+permissions = ["delete"]
+access_policy = "#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}"
+rls_policy = "#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot')}"
+# =============================
+# ap_users
+# =============================
+# ---------- SELECT ----------
+[[access.tables]]
+name = "ap_users"
+permissions = ["select"]
+rls_policy = """
+    ((tenant_id = #{#security.principal.tenantId} AND #{#security.hasAnyRole('ROLE_account_user','ROLE_account_manager','ROLE_tenant_admin')}) OR
+    (#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot' )}))
+"""
+# ---------- INSERT / UPDATE ----------
+[[access.tables]]
+name = "ap_users"
+permissions = ["insert", "update"]
+access_policy = "#{#security.hasAnyRole('ROLE_tenant_admin', 'ROLE_super_admin', 'ROLE_agent_bot')}"
+rls_policy = """
+    ((#{#security.hasAnyRole('ROLE_tenant_admin')} AND tenant_id = #{#security.principal.tenantId}) OR
+    (#{#security.hasAnyRole('ROLE_super_admin', 'ROLE_agent_bot' )}))
+"""
+# ---------- delete (Only Bot Admin) ----------
+[[access.tables]]
+name = "ap_users"
+permissions = ["delete"]
+access_policy = "#{#security.hasRole('ROLE_agent_bot')}"
+rls_policy = "#{#security.hasRole('ROLE_agent_bot')}"
+# =============================# =============================# =============================# =============================
+#                                               Tables with Full Access
+# =============================# =============================# =============================# =============================
+[[access.tables]]
+name = "ap_pos"
+permissions = ["select", "insert", "update", "delete"]
+fields = []
+
+[[access.tables]]
+name = "ap_reconcile"
+permissions = ["select", "insert", "update"]
+fields = []
+
+[[access.tables]]
+name = "ap_default_configs"
+permissions = ["select", "insert", "update", "delete"]
+fields = []
+
+[[access.tables]]
+name = "ap_password_reset"
+permissions = ["select", "insert", "update", "delete"]
+fields = []
+
+[[access.tables]]
+name = "ap_itemmaster"
+permissions = ["select", "insert", "update", "delete"]
+fields = []
+
+[[access.tables]]
+name = "ap_errors"
+permissions = ["select", "insert", "update", "delete"]
+fields = []

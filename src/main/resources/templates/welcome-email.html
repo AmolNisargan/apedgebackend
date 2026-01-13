@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Welcome Email</title>
+</head>
+<body style="font-family: Arial, sans-serif;">
+  <h2>Hello, <span th:text="${username}">User</span>!</h2>
+  <p>Welcome to our platform.</p>
+  <p>Your registration date is <b th:text="${date}">DATE</b>.</p>
+  <hr/>
+  <p>Thank you,<br/>The ApEdge Team</p>
+</body>
+</html>

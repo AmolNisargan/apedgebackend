@@ -1,0 +1,121 @@
+buildscript {
+  repositories {
+    String buildId = System.getenv("BUILD_ID")
+    if (!(buildId != null && buildId.trim())) {
+      mavenLocal()
+    }
+    maven {
+      url "${repositoryUrl}"
+      allowInsecureProtocol = project.getProperties().getOrDefault('allowInsecureProtocol', false)
+    }
+  }
+
+  dependencies {
+    classpath "com.automationedge.platform:ae-gradle-plugin:1.0.7"
+  }
+}
+
+plugins {
+  id "application"
+}
+
+defaultTasks "clean"
+
+apply plugin: 'ae-platform-build'
+apply plugin: 'io.freefair.lombok'
+
+lombok {
+  version = "1.18.34"
+}
+
+test {
+  systemProperty "LOG_DIR", "${projectDir}/logs"
+  systemProperty "SERVICE_HOME", "${projectDir}"
+
+  classpath = project.sourceSets.test.runtimeClasspath + files("${projectDir}/src/main/config")
+}
+
+dependencies {
+  implementation(platform("com.automationedge.platform:ae-platform-bom:${thirdPartyVersions['ae-platform']}"))
+
+  implementation("com.automationedge.platform:ae-platform-web")
+  implementation("com.automationedge.platform:ae-platform-tomcat")
+  implementation("com.automationedge.platform:ae-platform-crypto")
+  implementation("com.automationedge.platform:ae-platform-utils")
+
+  implementation("com.automationedge.platform:ae-platform-logging")
+  
+  // RestifyDB
+  implementation("com.automationedge.app.platform:ae-app-platform-restifydb:${thirdPartyVersions['ae-app-platform']}")
+
+  // Security
+  implementation("com.automationedge.platform:ae-platform-security-jwt")
+  implementation("org.springframework.boot:spring-boot-actuator-autoconfigure") // EndpointRequest
+
+  // Feign
+  implementation("com.automationedge.platform:ae-platform-feign")
+ implementation("com.automationedge.clients:ae-feign-client:${thirdPartyVersions['ae-feign-client']}")
+
+  implementation("org.postgresql:postgresql")
+  implementation("org.liquibase:liquibase-core")
+
+  implementation 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
+
+  // Prometheus metrics export
+  implementation("io.micrometer:micrometer-registry-prometheus")
+
+  // Tracing
+  implementation("io.micrometer:micrometer-tracing-bridge-brave")
+
+  // For sending emails
+  implementation("org.springframework.boot:spring-boot-starter-mail")
+  implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+  implementation 'org.apache.poi:poi:5.2.5'
+  implementation 'org.apache.poi:poi-ooxml:5.2.5'  // for .xlsx support
+
+  // Spring Data JPA
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+  // Spring WebFlux for reactive programming (Mono, WebClient)
+  implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+  // Jackson (usually included with web/webflux starters, but explicitly add if issues persist)
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
+  implementation 'com.fasterxml.jackson.core:jackson-core'
+  implementation 'com.fasterxml.jackson.core:jackson-annotations'
+  implementation 'org.hibernate:hibernate-core:6.2.6.Final'
+  implementation 'com.vladmihalcea:hibernate-types-60:2.21.1'
+
+  // Explicit Jakarta Persistence API (only add if you are on Spring Boot 3.x and the javax.persistence errors persist)
+  // If you are on Spring Boot 2.x, DO NOT add this.
+  implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+
+  // PDFBox for PDF text extraction
+  implementation 'org.apache.pdfbox:pdfbox:2.0.29'
+
+  // Tess4J OCR (use stable version available)
+  implementation 'net.sourceforge.tess4j:tess4j:4.5.5'
+
+  // If needed, add dependencies for slf4j logging in Tess4J
+  implementation 'org.slf4j:slf4j-api:2.0.9'
+  
+}
+
+// Application configuration
+mainClassName = "com.automationedge.apedge.ApEdgeApplication"
+applicationName = "apedge"
+
+applicationDefaultJvmArgs = [
+    '-server',
+    '-Xms256m',
+    '-Xmx512m',
+    '-XX:+HeapDumpOnOutOfMemoryError',
+    '-Dspring.jmx.enabled=false',
+    '-DAPP_HOME=XxxAPP_HOMExxX',
+    '-Dspring.config.additional-location=XxxAPP_HOMExxX/config/application-override.properties',
+    '-DLOG_DIR=XxxAPP_HOMExxX/logs',
+    '-Dshutdown.enabled=true'
+]
+
